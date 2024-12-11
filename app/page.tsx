@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Moon, Sun, Coffee, Utensils, CheckCircle, Trash2 } from 'lucide-react';
+import { Moon, Sun, Coffee, Utensils, CheckCircle, Trash2 } from 'lucide-react';
 
 export default function Home() {
   // Initialize with default values
