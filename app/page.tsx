@@ -163,7 +163,7 @@ export default function Home() {
 
         {/* Status Display */}
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <h2 className="font-semibold mb-4">"Today's Logs:"</h2>
+          <h2 className="font-semibold mb-4">Today&apos;s Logs</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center space-x-2">
               <Sun className="w-4 h-4" />
