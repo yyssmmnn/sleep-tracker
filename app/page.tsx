@@ -1,101 +1,219 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Clock, Moon, Sun, Coffee, Utensils, CheckCircle, Trash2 } from 'lucide-react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  // Initialize with default values
+  const initialState = {
+    currentDay: {
+      date: new Date().toISOString(),
+      wakeTime: '',
+      bedTime: '',
+      vyvanseTime: '',
+      meals: [], // Initialize as empty array
+    },
+    history: []
+  };
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [logs, setLogs] = useState(initialState);
+  
+  useEffect(() => {
+    const savedLogs = localStorage.getItem('sleepTrackerData');
+    if (savedLogs) {
+      const parsedLogs = JSON.parse(savedLogs);
+      // Ensure meals array exists even if loading old data
+      if (!parsedLogs.currentDay.meals) {
+        parsedLogs.currentDay.meals = [];
+      }
+      if (!Array.isArray(parsedLogs.history)) {
+        parsedLogs.history = [];
+      }
+      setLogs(parsedLogs);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('sleepTrackerData', JSON.stringify(logs));
+  }, [logs]);
+
+  const getCurrentTime = () => {
+    return new Date().toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
+  const handleStartDay = () => {
+    if (logs.currentDay.bedTime) {
+      setLogs(prev => ({
+        currentDay: {
+          date: new Date().toISOString(),
+          wakeTime: getCurrentTime(),
+          bedTime: '',
+          vyvanseTime: '',
+          meals: [],
+        },
+        history: [...prev.history, prev.currentDay]
+      }));
+    } else {
+      setLogs(prev => ({
+        ...prev,
+        currentDay: {
+          ...prev.currentDay,
+          wakeTime: getCurrentTime()
+        }
+      }));
+    }
+  };
+
+  const handleEndDay = () => {
+    setLogs(prev => ({
+      ...prev,
+      currentDay: {
+        ...prev.currentDay,
+        bedTime: getCurrentTime()
+      }
+    }));
+  };
+
+  const handleVyvanse = () => {
+    setLogs(prev => ({
+      ...prev,
+      currentDay: {
+        ...prev.currentDay,
+        vyvanseTime: getCurrentTime()
+      }
+    }));
+  };
+
+  const handleMeal = () => {
+    setLogs(prev => ({
+      ...prev,
+      currentDay: {
+        ...prev.currentDay,
+        meals: [...prev.currentDay.meals, getCurrentTime()]
+      }
+    }));
+  };
+
+  const removeMeal = (indexToRemove: number) => {
+    setLogs(prev => ({
+      ...prev,
+      currentDay: {
+        ...prev.currentDay,
+        meals: prev.currentDay.meals.filter((_, index) => index !== indexToRemove)
+      }
+    }));
+  };
+
+  const isDayComplete = logs.currentDay.bedTime !== '';
+
+  return (
+    <div className="p-4 max-w-4xl mx-auto">
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Sleep Tracker</h1>
+          <div>{new Date(logs.currentDay.date).toLocaleDateString()}</div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Quick Actions */}
+          <div className="space-y-4">
+            <button 
+              onClick={handleStartDay}
+              className={`w-full p-4 ${isDayComplete ? 'bg-green-100 hover:bg-green-200' : 'bg-yellow-100 hover:bg-yellow-200'} rounded-lg flex items-center justify-center space-x-2 transition-colors`}
+            >
+              <Sun className="w-6 h-6" />
+              <span>{isDayComplete ? 'Start New Day' : 'Start Day'}</span>
+              {isDayComplete && <CheckCircle className="w-4 h-4 ml-2" />}
+            </button>
+            
+            <button 
+              onClick={handleEndDay}
+              disabled={!logs.currentDay.wakeTime || isDayComplete}
+              className={`w-full p-4 ${!logs.currentDay.wakeTime || isDayComplete ? 'bg-gray-100 cursor-not-allowed' : 'bg-blue-100 hover:bg-blue-200'} rounded-lg flex items-center justify-center space-x-2 transition-colors`}
+            >
+              <Moon className="w-6 h-6" />
+              <span>End Day</span>
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <button 
+              onClick={handleVyvanse}
+              disabled={!logs.currentDay.wakeTime || isDayComplete}
+              className={`w-full p-4 ${!logs.currentDay.wakeTime || isDayComplete ? 'bg-gray-100 cursor-not-allowed' : 'bg-green-100 hover:bg-green-200'} rounded-lg flex items-center justify-center space-x-2`}
+            >
+              <Coffee className="w-6 h-6" />
+              <span>Log Vyvanse</span>
+            </button>
+            
+            <button 
+              onClick={handleMeal}
+              disabled={!logs.currentDay.wakeTime || isDayComplete}
+              className={`w-full p-4 ${!logs.currentDay.wakeTime || isDayComplete ? 'bg-gray-100 cursor-not-allowed' : 'bg-orange-100 hover:bg-orange-200'} rounded-lg flex items-center justify-center space-x-2`}
+            >
+              <Utensils className="w-6 h-6" />
+              <span>Log Meal</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Status Display */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+          <h2 className="font-semibold mb-4">Today's Logs:</h2>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center space-x-2">
+              <Sun className="w-4 h-4" />
+              <span>Wake: {logs.currentDay.wakeTime || 'Not logged'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Moon className="w-4 h-4" />
+              <span>Bed: {logs.currentDay.bedTime || 'Not logged'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Coffee className="w-4 h-4" />
+              <span>Vyvanse: {logs.currentDay.vyvanseTime || 'Not logged'}</span>
+            </div>
+          </div>
+
+          {/* Meals Section */}
+          <div className="mt-4">
+            <h3 className="font-medium mb-2">Meals:</h3>
+            {logs.currentDay.meals.length === 0 ? (
+              <p className="text-sm text-gray-500">No meals logged today</p>
+            ) : (
+              <div className="space-y-2">
+                {logs.currentDay.meals.map((meal, index) => (
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-2">
+                      <Utensils className="w-4 h-4" />
+                      <span>Meal {index + 1}: {meal}</span>
+                    </div>
+                    {!isDayComplete && (
+                      <button 
+                        onClick={() => removeMeal(index)}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick peek at history */}
+        {logs.history.length > 0 && (
+          <div className="mt-4 text-sm text-gray-500">
+            Last completed day: {new Date(logs.history[logs.history.length - 1].date).toLocaleDateString()}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
